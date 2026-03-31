@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DuckDuckGo — Google tab
 // @namespace    https://github.com/fluxtendu/My-userscripts
-// @version      1.1.0
+// @version      1.2.0
 // @description  Adds a Google tab in the DDG filter bar. Context-aware: Images, Videos, News, Maps.
 // @author       fluxtendu
 // @match        https://duckduckgo.com/*
@@ -35,71 +35,50 @@
         }
     `;
 
+    const EXTERNAL_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+    </svg>`;
+
+    const TBM = { images: 'isch', videos: 'vid', news: 'nws' };
+
     function getGoogleUrl(q) {
         const params = new URLSearchParams(window.location.search);
-        const ia   = params.get('ia')   || '';
-        const iaxm = params.get('iaxm') || '';
-        const enc  = encodeURIComponent(q);
+        const enc = encodeURIComponent(q);
 
-        if (iaxm === 'maps' || ia === 'maps')
+        if (params.get('iaxm') === 'maps' || params.get('ia') === 'maps')
             return `https://www.google.com/maps/search/${enc}`;
 
-        switch (ia) {
-            case 'images': return `https://www.google.com/search?q=${enc}&tbm=isch`;
-            case 'videos': return `https://www.google.com/search?q=${enc}&tbm=vid`;
-            case 'news':   return `https://www.google.com/search?q=${enc}&tbm=nws`;
-            default:       return `https://www.google.com/search?q=${enc}`;
-        }
+        const tbm = TBM[params.get('ia')];
+        return tbm
+            ? `https://www.google.com/search?q=${enc}&tbm=${tbm}`
+            : `https://www.google.com/search?q=${enc}`;
     }
 
-    function injectStyles() {
-        if (document.querySelector('#tm-google-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-google-styles';
-        style.textContent = STYLE;
-        document.head.appendChild(style);
+    function openGoogle(e) {
+        e.preventDefault();
+        const q = document.querySelector('#search_form_input')?.value.trim();
+        if (q) window.open(getGoogleUrl(q), '_blank', 'noopener');
     }
 
-    function run() {
-        injectStyles();
+    function handleMapsView() {
+        document.querySelector('#tm-google-tab')?.closest('li')?.remove();
+        if (document.querySelector('#tm-google-maps-link')) return;
 
-        const input = document.querySelector('#search_form_input');
-        if (!input) return;
+        const sidebar = document.querySelector('[data-testid="maps-vertical-sidebar-header"]');
+        if (!sidebar) return;
 
-        const onMaps = new URLSearchParams(window.location.search).get('iaxm') === 'maps';
+        const link = document.createElement('a');
+        link.id = 'tm-google-maps-link';
+        link.href = '#';
+        link.innerHTML = `${EXTERNAL_ICON} Open in Google Maps`;
+        link.addEventListener('click', openGoogle);
+        sidebar.appendChild(link);
+    }
 
-        // --- Maps view: link in sidebar ---
-        if (onMaps) {
-            document.querySelector('#tm-google-tab')?.closest('li')?.remove();
-
-            if (!document.querySelector('#tm-google-maps-link')) {
-                const sidebar = document.querySelector('[data-testid="maps-vertical-sidebar-header"]');
-                if (sidebar) {
-                    const link = document.createElement('a');
-                    link.id = 'tm-google-maps-link';
-                    link.href = '#';
-                    link.innerHTML = `
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                            <polyline points="15 3 21 3 21 9"/>
-                            <line x1="10" y1="14" x2="21" y2="3"/>
-                        </svg>
-                        Open in Google Maps
-                    `;
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const q = input.value.trim();
-                        if (!q) return;
-                        window.open(getGoogleUrl(q), '_blank', 'noopener');
-                    });
-                    sidebar.appendChild(link);
-                }
-            }
-            return;
-        }
-
-        // --- Normal view: tab in nav ---
+    function handleNormalView() {
         document.querySelector('#tm-google-maps-link')?.remove();
 
         const links = document.querySelectorAll('section > nav > ul:first-child > li > a');
@@ -114,8 +93,9 @@
             return;
         }
 
-        const source = [...links].find(a => !a.hasAttribute('aria-current') && !a.closest('li').hasAttribute('aria-current'))
-            ?? links[links.length - 1];
+        const source = [...links].find(
+            a => !a.hasAttribute('aria-current') && !a.closest('li').hasAttribute('aria-current')
+        ) ?? links[links.length - 1];
 
         const newItem = source.closest('li').cloneNode(true);
         const newLink = newItem.querySelector('a');
@@ -124,29 +104,29 @@
         newItem.removeAttribute('aria-current');
 
         newLink.id = 'tm-google-tab';
-        newLink.textContent = '↗ Google';
+        newLink.textContent = 'Google ↗';
         newLink.href = '#';
         newLink.style.cursor = 'pointer';
-
-        newLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            const q = input.value.trim();
-            if (!q) return;
-            window.open(getGoogleUrl(q), '_blank', 'noopener');
-        });
+        newLink.addEventListener('click', openGoogle);
 
         list.appendChild(newItem);
     }
 
+    function run() {
+        const onMaps = new URLSearchParams(window.location.search).get('iaxm') === 'maps';
+        onMaps ? handleMapsView() : handleNormalView();
+    }
+
+    // Inject styles once at init
+    const style = document.createElement('style');
+    style.id = 'tm-google-styles';
+    style.textContent = STYLE;
+    document.head.appendChild(style);
+
     const observer = new MutationObserver((mutations) => {
-        // Prevent React from re-applying aria-current on our tab
-        for (const mutation of mutations) {
-            if (
-                mutation.type === 'attributes' &&
-                mutation.attributeName === 'aria-current' &&
-                mutation.target.id === 'tm-google-tab'
-            ) {
-                mutation.target.removeAttribute('aria-current');
+        for (const { type, attributeName, target } of mutations) {
+            if (type === 'attributes' && attributeName === 'aria-current' && target.id === 'tm-google-tab') {
+                target.removeAttribute('aria-current');
                 return;
             }
         }
@@ -157,7 +137,7 @@
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['aria-current']
+        attributeFilter: ['aria-current'],
     });
 
     run();
