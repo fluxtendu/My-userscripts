@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DuckDuckGo — Google tab
 // @namespace    https://github.com/fluxtendu/My-userscripts
-// @version      1.2.0
+// @version      1.3.0
 // @description  Adds a Google tab in the DDG filter bar. Context-aware: Images, Videos, News, Maps.
 // @author       fluxtendu
 // @match        https://duckduckgo.com/*
@@ -18,6 +18,10 @@
         #tm-google-tab::after,
         #tm-google-tab::before {
             display: none !important;
+        }
+        #tm-google-tab svg,
+        #tm-google-maps-link svg {
+            vertical-align: middle;
         }
         #tm-google-maps-link {
             display: flex;
@@ -104,7 +108,7 @@
         newItem.removeAttribute('aria-current');
 
         newLink.id = 'tm-google-tab';
-        newLink.textContent = 'Google ↗';
+        newLink.innerHTML = `${EXTERNAL_ICON} Google`;
         newLink.href = '#';
         newLink.style.cursor = 'pointer';
         newLink.addEventListener('click', openGoogle);
