@@ -124,7 +124,7 @@
         newItem.removeAttribute('aria-current');
 
         newLink.id = 'tm-google-tab';
-        newLink.textContent = 'Google ↗';
+        newLink.textContent = '↗ Google';
         newLink.href = '#';
         newLink.style.cursor = 'pointer';
 
