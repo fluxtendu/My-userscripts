@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DuckDuckGo — Google tab
 // @namespace    https://github.com/fluxtendu/My-userscripts
-// @version      1.3.0
+// @version      1.4.0
 // @description  Adds a Google tab in the DDG filter bar. Context-aware: Images, Videos, News, Maps.
 // @author       fluxtendu
 // @match        https://duckduckgo.com/*
@@ -67,6 +67,23 @@
         if (q) window.open(getGoogleUrl(q), '_blank', 'noopener');
     }
 
+    // Watches a specific element and resets any class/aria-current changes DDG may apply
+    function guardInactiveState(li, a) {
+        const savedLiClass  = li.className;
+        const savedAClass   = a.className;
+
+        new MutationObserver(() => {
+            if (a.hasAttribute('aria-current'))  a.removeAttribute('aria-current');
+            if (li.hasAttribute('aria-current')) li.removeAttribute('aria-current');
+            if (a.className  !== savedAClass)    a.className  = savedAClass;
+            if (li.className !== savedLiClass)   li.className = savedLiClass;
+        }).observe(li, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['aria-current', 'class'],
+        });
+    }
+
     function handleMapsView() {
         document.querySelector('#tm-google-tab')?.closest('li')?.remove();
         if (document.querySelector('#tm-google-maps-link')) return;
@@ -114,6 +131,7 @@
         newLink.addEventListener('click', openGoogle);
 
         list.appendChild(newItem);
+        guardInactiveState(newItem, newLink);
     }
 
     function run() {
@@ -121,28 +139,12 @@
         onMaps ? handleMapsView() : handleNormalView();
     }
 
-    // Inject styles once at init
     const style = document.createElement('style');
     style.id = 'tm-google-styles';
     style.textContent = STYLE;
     document.head.appendChild(style);
 
-    const observer = new MutationObserver((mutations) => {
-        for (const { type, attributeName, target } of mutations) {
-            if (type === 'attributes' && attributeName === 'aria-current' && target.id === 'tm-google-tab') {
-                target.removeAttribute('aria-current');
-                return;
-            }
-        }
-        run();
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['aria-current'],
-    });
+    new MutationObserver(run).observe(document.body, { childList: true, subtree: true });
 
     run();
 })();
