@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DuckDuckGo — Google tab
 // @namespace    https://github.com/fluxtendu/My-userscripts
-// @version      1.4.0
+// @version      1.5.0
 // @description  Adds a Google tab in the DDG filter bar. Context-aware: Images, Videos, News, Maps.
 // @author       fluxtendu
 // @match        https://duckduckgo.com/*
@@ -67,20 +67,19 @@
         if (q) window.open(getGoogleUrl(q), '_blank', 'noopener');
     }
 
-    // Watches a specific element and resets any class/aria-current changes DDG may apply
+    // DDG marks the active tab with an extra CSS class (not aria-current).
+    // Save the inactive className and restore it if DDG ever modifies it.
     function guardInactiveState(li, a) {
-        const savedLiClass  = li.className;
-        const savedAClass   = a.className;
+        const savedLiClass = li.className;
+        const savedAClass  = a.className;
 
         new MutationObserver(() => {
-            if (a.hasAttribute('aria-current'))  a.removeAttribute('aria-current');
-            if (li.hasAttribute('aria-current')) li.removeAttribute('aria-current');
-            if (a.className  !== savedAClass)    a.className  = savedAClass;
-            if (li.className !== savedLiClass)   li.className = savedLiClass;
+            if (a.className  !== savedAClass)  a.className  = savedAClass;
+            if (li.className !== savedLiClass) li.className = savedLiClass;
         }).observe(li, {
             attributes: true,
             subtree: true,
-            attributeFilter: ['aria-current', 'class'],
+            attributeFilter: ['class'],
         });
     }
 
@@ -114,15 +113,13 @@
             return;
         }
 
-        const source = [...links].find(
-            a => !a.hasAttribute('aria-current') && !a.closest('li').hasAttribute('aria-current')
-        ) ?? links[links.length - 1];
+        // Active tab has more classes than inactive ones — clone the one with fewest classes
+        const minClasses = Math.min(...[...links].map(a => a.classList.length));
+        const source = [...links].find(a => a.classList.length === minClasses)
+            ?? links[links.length - 1];
 
         const newItem = source.closest('li').cloneNode(true);
         const newLink = newItem.querySelector('a');
-
-        newItem.querySelectorAll('[aria-current]').forEach(el => el.removeAttribute('aria-current'));
-        newItem.removeAttribute('aria-current');
 
         newLink.id = 'tm-google-tab';
         newLink.innerHTML = `${EXTERNAL_ICON} Google`;
