@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         DuckDuckGo — Google tab
-// @namespace    https://github.com/fluxtendu/userscripts
-// @version      1.0.0
-// @description  Ajoute un onglet Google dans la barre de filtres DDG. Respecte le contexte : Images, Vidéos, Actualités, Cartes.
+// @namespace    https://github.com/fluxtendu/My-userscripts
+// @version      1.1.0
+// @description  Adds a Google tab in the DDG filter bar. Context-aware: Images, Videos, News, Maps.
 // @author       fluxtendu
 // @match        https://duckduckgo.com/*
 // @grant        none
@@ -68,7 +68,7 @@
 
         const onMaps = new URLSearchParams(window.location.search).get('iaxm') === 'maps';
 
-        // --- Vue maps : lien dans la sidebar ---
+        // --- Maps view: link in sidebar ---
         if (onMaps) {
             document.querySelector('#tm-google-tab')?.closest('li')?.remove();
 
@@ -85,7 +85,7 @@
                             <polyline points="15 3 21 3 21 9"/>
                             <line x1="10" y1="14" x2="21" y2="3"/>
                         </svg>
-                        Voir sur Google Maps
+                        Open in Google Maps
                     `;
                     link.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -99,7 +99,7 @@
             return;
         }
 
-        // --- Vue normale : onglet dans le nav ---
+        // --- Normal view: tab in nav ---
         document.querySelector('#tm-google-maps-link')?.remove();
 
         const links = document.querySelectorAll('section > nav > ul:first-child > li > a');
@@ -138,7 +138,27 @@
         list.appendChild(newItem);
     }
 
-    const observer = new MutationObserver(run);
-    observer.observe(document.body, { childList: true, subtree: true });
+    const observer = new MutationObserver((mutations) => {
+        // Prevent React from re-applying aria-current on our tab
+        for (const mutation of mutations) {
+            if (
+                mutation.type === 'attributes' &&
+                mutation.attributeName === 'aria-current' &&
+                mutation.target.id === 'tm-google-tab'
+            ) {
+                mutation.target.removeAttribute('aria-current');
+                return;
+            }
+        }
+        run();
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-current']
+    });
+
     run();
 })();
