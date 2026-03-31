@@ -1,16 +1,16 @@
 # Userscripts
 
-Collection de userscripts pour Tampermonkey.
+A collection of Tampermonkey userscripts.
 
 ## Scripts
 
 ### [duckduckgo-google-tab](duckduckgo-google-tab/duckduckgo-google-tab.user.js)
 
-Ajoute un onglet **Google ↗** dans la barre de filtres de DuckDuckGo (à côté de Images, Vidéos, Actualités, Cartes).
+Adds a **Google ↗** tab to the DuckDuckGo filter bar (next to Images, Videos, News, Maps).
 
-- Ouvre la recherche dans Google dans un nouvel onglet
-- Respecte le contexte actif : Images → Google Images, Vidéos → Google Vidéos, Actualités → Google Actualités
-- Sur la vue Cartes : injecte un lien « Voir sur Google Maps » dans la sidebar
-- S'intègre visuellement dans le thème DDG (compatible [Catppuccin via Stylus](https://github.com/catppuccin/userstyles))
+- Opens the search in Google in a new tab
+- Context-aware: Images → Google Images, Videos → Google Videos, News → Google News
+- On the Maps view: injects an "Open in Google Maps" link in the sidebar
+- Visually integrates with the DDG theme (compatible with [Catppuccin via Stylus](https://github.com/catppuccin/userstyles))
 
-**Installation :** [Installer le script](https://raw.githubusercontent.com/fluxtendu/userscripts/main/duckduckgo-google-tab/duckduckgo-google-tab.user.js) *(requiert [Tampermonkey](https://www.tampermonkey.net/))*
+**Install:** [Install script](https://raw.githubusercontent.com/fluxtendu/My-userscripts/main/duckduckgo-google-tab/duckduckgo-google-tab.user.js) *(requires [Tampermonkey](https://www.tampermonkey.net/))*
