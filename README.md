@@ -13,4 +13,17 @@ Adds a **Google ↗** tab to the DuckDuckGo filter bar (next to Images, Videos, 
 - On the Maps view: injects an "Open in Google Maps" link in the sidebar
 - Visually integrates with the DDG theme (compatible with [Catppuccin via Stylus](https://github.com/catppuccin/userstyles))
 
-**Install:** [Install script](https://raw.githubusercontent.com/fluxtendu/My-userscripts/main/duckduckgo-google-tab/duckduckgo-google-tab.user.js) *(requires [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/) or another userscripts manager)*
+**Install:** [Install script](https://raw.githubusercontent.com/fluxtendu/My-userscripts/main/duckduckgo-google-tab/duckduckgo-google-tab.user.js) *(requires [Tampermonkey](https://www.tampermonkey.net/) or another userscript manager)*
+
+---
+
+### [duckduckgo-wide-layout](duckduckgo-wide-layout/duckduckgo-wide-layout.user.js)
+
+Widens the DDG results column and sidebar to make better use of screen space.
+
+- Results column: 672px → 980px
+- Sidebar: 448px → 500px
+- Search bar width follows accordingly
+- Configurable via `RESULTS_WIDTH` and `SIDEBAR_WIDTH` at the top of the script
+
+**Install:** [Install script](https://raw.githubusercontent.com/fluxtendu/My-userscripts/main/duckduckgo-wide-layout/duckduckgo-wide-layout.user.js) *(requires [Tampermonkey](https://www.tampermonkey.net/) or another userscript manager)*
